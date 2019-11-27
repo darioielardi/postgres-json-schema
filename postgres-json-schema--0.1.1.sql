@@ -49,6 +49,14 @@ BEGIN
     END LOOP;
   END IF;
 
+  IF schema ? 'propertyNames' AND jsonb_typeof(schema->'propertyNames') = 'object' THEN 
+  	FOR prop IN SELECT jsonb_object_keys(data) LOOP
+  	  IF NOT validate_json_schema(schema->'propertyNames', to_jsonb(prop)) THEN
+  	  	RETURN FALSE;
+  	  END IF;
+  	END LOOP;
+  END IF;
+
   IF schema ? 'required' AND jsonb_typeof(data) = 'object' THEN
     IF NOT ARRAY(SELECT jsonb_object_keys(data)) @>
            ARRAY(SELECT jsonb_array_elements_text(schema->'required')) THEN
